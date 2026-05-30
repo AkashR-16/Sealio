@@ -1,0 +1,987 @@
+# Sealio — build-tracking playbook for the LaunchForge/VeriSOP engine.
+#
+# PROJECT:  sealio-build
+# TENANT:   Beatura Labs
+#
+# CONSUMPTION (non-negotiable):
+#   - Engine consumed via HTTP API only. No library import, no fork, no direct
+#     Postgres connection.
+#   - LF_ADMIN_KEY lives only in .env.local (gitignored). Never committed.
+#   - No feature flags. Gates enforced by tenant provisioning + data-driven UI.
+#
+# STRUCTURE:
+#   Milestones map to initiatives. Each task maps 1-to-1 with a concrete
+#   engineering deliverable. Done tasks (M0–M2) are included so the full
+#   arc is visible; mark them complete in the UI on first load.
+
+project: sealio-build
+
+defaults:
+  launch_date: 2026-06-09
+
+tasks:
+
+  # ===========================================================================
+  # M0 — SCAFFOLD (DONE)
+  # ===========================================================================
+
+  - id: m0-monorepo-scaffold
+    title: "M0: Turborepo monorepo scaffold (DONE)"
+    type: manual
+    category: Platform
+    initiative: M0 Scaffold
+    due_date: 2026-05-25
+    instructions: |
+      Initialize the Turborepo monorepo with apps/web (Next.js 16, TypeScript,
+      Tailwind v4, dark theme), apps/api (Fastify, TypeScript),
+      packages/db (Prisma + postgres), packages/types (shared types).
+
+      **Status: DONE 2026-05-25.** Monorepo booting. pnpm dev → web :3000,
+      api :3001.
+
+      ## Acceptance criteria
+      - [x] Turborepo initialized, pnpm workspaces wired
+      - [x] apps/web — Next.js 16 + TypeScript strict + Tailwind v4 dark theme
+      - [x] apps/api — Fastify + TypeScript strict
+      - [x] packages/db — Prisma + postgres provider
+      - [x] packages/types — shared TypeScript types
+      - [x] docker-compose.yml — postgres, redis, minio, mailhog
+      - [x] .env.local template with all required vars
+      - [x] turbo.json — dev, build, test pipelines
+      - [x] docker compose up → all 4 services healthy
+      - [x] pnpm dev → web :3000, api :3001, no errors
+
+      ## Test
+      `docker compose up` → all healthy. `pnpm dev` → both apps boot.
+
+  # ===========================================================================
+  # M1 — DATABASE + AUTH (DONE)
+  # ===========================================================================
+
+  - id: m1-prisma-schema-migration
+    title: "M1: Prisma schema + migration (DONE)"
+    type: manual
+    category: Platform
+    initiative: M1 Database + Auth
+    due_date: 2026-05-25
+    instructions: |
+      Full 10-table Prisma schema (Organization, User, Document, DocumentField,
+      SigningRequest, Signature, AuditEvent, Template, WebhookEndpoint, ApiKey).
+      Migration applied to real Postgres. Seed creates demo org + user.
+
+      **Status: DONE 2026-05-25.**
+
+      ## Acceptance criteria
+      - [x] All 10 tables created via prisma migrate dev
+      - [x] Seed: demo org + owner user
+      - [x] AuditEvent is append-only (no UPDATE/DELETE anywhere in codebase)
+
+      ## Test
+      `prisma studio` — all tables visible. Seed user can log in.
+
+  - id: m1-jwt-auth-routes
+    title: "M1: JWT RS256 + auth routes (DONE)"
+    type: manual
+    category: Platform
+    initiative: M1 Database + Auth
+    due_date: 2026-05-25
+    instructions: |
+      RS256 key pair. Fastify JWT plugin (access 15min + refresh 7d, httpOnly
+      cookies). Five auth routes: signup, login, refresh, logout, /me.
+      Fastify authenticate decorator for all protected routes.
+
+      **Status: DONE 2026-05-25.** 13 integration tests green (Rachel gate).
+
+      ## Acceptance criteria
+      - [x] POST /auth/signup — create org + user, return JWT pair
+      - [x] POST /auth/login — bcrypt verify, return JWT pair
+      - [x] POST /auth/refresh — rotate refresh token
+      - [x] POST /auth/logout — clear cookies
+      - [x] GET /auth/me — return session user from JWT
+      - [x] Fastify authenticate decorator wired to all protected routes
+      - [x] 13 integration tests green (real Postgres)
+
+      ## Test
+      `pnpm test` in apps/api → 13 tests pass.
+
+  - id: m1-nextjs-auth-ui
+    title: "M1: Next.js auth UI + protected route middleware (DONE)"
+    type: manual
+    category: Feature
+    initiative: M1 Database + Auth
+    due_date: 2026-05-25
+    instructions: |
+      Login page (/login), signup page (/signup). Server actions for auth.
+      Next.js middleware: unauthenticated → redirect to /login;
+      logged-in visiting /login or /signup → redirect to /dashboard.
+      App shell layout with sticky nav + sign out. Dashboard with stat cards.
+
+      **Status: DONE 2026-05-25.**
+
+      ## Acceptance criteria
+      - [x] /login and /signup pages — dark theme, Shadcn Form
+      - [x] Middleware redirects unauthenticated to /login
+      - [x] Middleware redirects logged-in away from /login and /signup
+      - [x] App shell layout — sticky nav + sign out
+      - [x] Dashboard page — stat cards + empty state
+
+      ## Test
+      Navigate to /dashboard without logging in → redirected to /login.
+      Log in → dashboard loads.
+
+  # ===========================================================================
+  # M2 — DOCUMENT UPLOAD + STORAGE (DONE)
+  # ===========================================================================
+
+  - id: m2-minio-upload-api
+    title: "M2: MinIO document upload API (DONE)"
+    type: manual
+    category: Platform
+    initiative: M2 Document Upload
+    due_date: 2026-05-25
+    instructions: |
+      MinIO bucket (sealio-documents). POST /documents validates PDF magic bytes
+      + SHA-256 hash + stores to MinIO. Duplicate detection: same hash in same
+      org → 409. GET /documents (paginated), GET /documents/:id (metadata),
+      GET /documents/:id/file (presigned URL redirect, 1hr).
+
+      **Status: DONE 2026-05-25.**
+
+      ## Acceptance criteria
+      - [x] sealio-documents bucket created in MinIO
+      - [x] POST /documents — PDF magic bytes check, SHA-256 hash, MinIO upload
+      - [x] Same hash in same org → 409 (duplicate detection)
+      - [x] GET /documents — paginated list
+      - [x] GET /documents/:id — document metadata
+      - [x] GET /documents/:id/file — presigned URL redirect (1hr)
+
+      ## Test
+      Upload test-contract.pdf → see it in document list. Upload same PDF again
+      → 409. Presigned URL opens the PDF in a new tab.
+
+  - id: m2-upload-ui
+    title: "M2: Document upload UI + document list page (DONE)"
+    type: manual
+    category: Feature
+    initiative: M2 Document Upload
+    due_date: 2026-05-25
+    instructions: |
+      /documents/new — drag-and-drop upload zone (react-dropzone), progress
+      spinner, error states. /documents list with all 4 UI states (loading,
+      error, empty, success). Document list shows title, status badge, date.
+
+      **Status: DONE 2026-05-25.**
+
+      ## Acceptance criteria
+      - [x] Upload drop zone — drag-and-drop, progress spinner, error states
+      - [x] Document list page — all 4 UI states
+      - [x] /documents/new page wired to POST /documents
+
+      ## Test
+      Upload a PDF via drag-and-drop → redirects to /documents → document
+      appears in list.
+
+  # ===========================================================================
+  # M3 — PDF VIEWER + FIELD PLACEMENT (IN PROGRESS)
+  # ===========================================================================
+
+  - id: m3-pdf-viewer
+    title: "M3: PDF viewer — render pages with pdfjs-dist"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-26
+    instructions: |
+      Render PDF pages in the browser using pdfjs-dist. Each page renders to a
+      canvas element. Wrap in a dark chrome. Navigation (prev/next page) and
+      zoom controls. The viewer sits at /documents/[id] and loads the document
+      via GET /documents/:id/file (presigned URL).
+
+      ## Acceptance criteria
+      - [ ] pdfjs-dist installed and worker configured
+      - [ ] PDF pages render to canvas (dark chrome wrapper)
+      - [ ] Prev/next page navigation
+      - [ ] Zoom in/out controls
+      - [ ] All 4 UI states on the viewer (loading, error, empty, success)
+      - [ ] No useEffect for data fetching — TanStack Query only
+
+      ## Test
+      Open /documents/[id] for a real uploaded PDF → all pages render.
+      Navigate pages. Zoom works. No console errors.
+
+  - id: m3-canvas-overlay
+    title: "M3: Canvas overlay layer for field placement (above PDF)"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-26
+    instructions: |
+      A canvas overlay sits above each PDF page canvas and receives
+      mouse/touch events for field placement. Field positions are stored as
+      percentages of page dimensions (resolution-independent) so they render
+      correctly at any zoom level.
+
+      ## Acceptance criteria
+      - [ ] Overlay canvas positioned exactly above PDF canvas
+      - [ ] Mouse events captured on overlay (not blocked by PDF canvas)
+      - [ ] Field positions stored as % of page width/height
+      - [ ] Overlay scales correctly with zoom changes
+      - [ ] Touch events captured for mobile support
+
+      ## Test
+      Click on a page → cursor position reported as % coordinates. Zoom in/out
+      → field positions remain visually correct.
+
+  - id: m3-field-palette-sidebar
+    title: "M3: Field palette sidebar (field type picker)"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-27
+    instructions: |
+      Left sidebar with draggable field types: Signature, Initials, Date,
+      Full Name, Text, Checkbox. Each field type has an icon and label.
+      Drag from sidebar → drop on PDF canvas to place. On mobile, sidebar
+      collapses to a bottom sheet / floating button.
+
+      Field types: signature | initials | date | full_name | text | checkbox
+
+      ## Acceptance criteria
+      - [ ] Left sidebar with all 6 field types
+      - [ ] Drag-from-sidebar to place a field on the PDF canvas
+      - [ ] Field type icons distinct and legible
+      - [ ] Mobile: sidebar collapses, bottom sheet or FAB replaces it
+      - [ ] Touch targets ≥ 44px on all field type items
+
+      ## Test
+      Drag "Signature" from sidebar → drop on page 1 → field placeholder
+      appears at drop position. On 375px viewport, sidebar collapses.
+
+  - id: m3-drag-place-resize
+    title: "M3: Drag-to-place fields with resize handles"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-27
+    instructions: |
+      After dropping a field from the palette, it can be:
+      - Moved by dragging the field body
+      - Resized via 8-point resize handles (or 4 corners for mobile)
+      - Deleted with an X button on the field
+
+      Fields snap to a soft grid (optional). Field positions/sizes are
+      always stored as % of page dimensions.
+
+      ## Acceptance criteria
+      - [ ] Fields can be dragged to reposition
+      - [ ] Resize handles on all 4 corners (+ 4 edges on desktop)
+      - [ ] Delete button on each field
+      - [ ] Min field size enforced (no zero-area fields)
+      - [ ] Touch drag + resize works on mobile (44px handle targets)
+
+      ## Test
+      Place a field → drag to new position → resize it → delete it. On mobile
+      touch, all interactions work without mis-triggering page scroll.
+
+  - id: m3-signer-assignment-panel
+    title: "M3: Signer assignment panel — add signers, assign fields by color"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-27
+    instructions: |
+      Right sidebar (or bottom sheet on mobile) for managing signers.
+      - Add signers by email (and optional name)
+      - Each signer gets a distinct color (up to 5 colors: teal, amber, rose,
+        violet, sky)
+      - Clicking a placed field opens an assignee picker → assigns it to a
+        signer → field border turns that signer's color
+      - Signer list shows how many fields are assigned to each signer
+
+      Fields have `assignedToEmail` set when assigned. Unassigned fields shown
+      in gray.
+
+      ## Acceptance criteria
+      - [ ] Add signer by email + optional name
+      - [ ] Up to 5 signers with distinct colors
+      - [ ] Field assignment via click → pick signer
+      - [ ] Assigned fields render in signer's color
+      - [ ] Signer list shows field count per signer
+      - [ ] Remove signer removes their field assignments (confirm dialog)
+
+      ## Test
+      Add 2 signers. Place 4 fields. Assign 2 to each signer. Each signer's
+      fields render in their color. Remove one signer → their fields revert
+      to unassigned.
+
+  - id: m3-save-fields-api
+    title: "M3: PUT /documents/:id/fields — save field config (DONE)"
+    type: manual
+    category: Platform
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-25
+    instructions: |
+      **Status: DONE 2026-05-25.**
+
+      PUT /documents/:id/fields — atomic replace all fields (deleteMany +
+      createMany in a single transaction). Fields stored in DocumentField table
+      with type, page, x/y/width/height as percentages, required, and
+      assignedToEmail. Only works when document status is "draft".
+
+      Also: GET /documents/:id/fields — return saved fields.
+      Also: POST /documents/:id/detect-fields — stub (returns empty array).
+
+      ## Acceptance criteria
+      - [x] PUT atomically replaces all fields in a transaction
+      - [x] Returns 409 if document status != draft
+      - [x] GET /documents/:id/fields returns saved fields
+      - [x] POST /documents/:id/detect-fields returns empty array stub
+
+      ## Test
+      Place fields in UI → save → reload page → fields persist in correct
+      positions.
+
+  - id: m3-document-editor-page
+    title: "M3: /documents/[id] editor page — wires viewer + canvas + panels"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-28
+    instructions: |
+      The /documents/[id] page is the main editor. It composes:
+      - PDF viewer (pdfjs-dist)
+      - Canvas overlay (field placement)
+      - Left sidebar: field palette
+      - Right sidebar: signer assignment panel
+      - Top bar: document title, "Save Fields" button, "Send for Signing" button
+        (disabled until at least one field is placed and all fields have a signer)
+      - Page navigation + zoom controls in the top bar
+
+      Saves fields via PUT /documents/:id/fields on "Save Fields" click.
+
+      ## Acceptance criteria
+      - [ ] All panels compose without layout clash
+      - [ ] "Save Fields" calls PUT /documents/:id/fields
+      - [ ] Success/error toast on save
+      - [ ] "Send for Signing" button — visible but disabled until ready
+      - [ ] All 4 UI states on every async element (Ashok gate)
+      - [ ] No useEffect for data fetching — TanStack Query only
+
+      ## Test
+      Navigate to /documents/[id] → PDF renders → place fields → save →
+      reload → fields preserved. All 4 UI states visible (loading skeleton,
+      error boundary, success state, empty state for no-fields case).
+
+  - id: m3-mobile-touch-support
+    title: "M3: Mobile touch support for field placement (Amy gate)"
+    type: manual
+    category: Feature
+    initiative: M3 PDF Viewer + Field Placement
+    due_date: 2026-05-28
+    instructions: |
+      Full field placement workflow must work on mobile (375px viewport, touch).
+      - Sidebar collapses to a bottom sheet or floating action button
+      - Touch drag to place fields from the palette
+      - Touch drag to reposition placed fields
+      - Touch resize with 4-corner handles (44px minimum target)
+      - No pinch-to-zoom conflict with field placement gestures
+
+      ## Acceptance criteria
+      - [ ] Sidebar collapses on mobile (≤768px)
+      - [ ] Bottom sheet or FAB shows field palette on mobile
+      - [ ] Touch drag places fields from palette to canvas
+      - [ ] Touch drag repositions existing fields
+      - [ ] Touch resize works on 44px corner handles
+      - [ ] No unintentional page scroll during field drag
+      - [ ] Full flow testable on a 375px viewport
+
+      ## Test
+      On Safari Mobile / 375px viewport: place a signature field, drag it
+      to a new position, resize it, assign to a signer, save. No scroll
+      interference during any gesture. (Amy gate)
+
+  # ===========================================================================
+  # M4 — SEND FOR SIGNING + EMAIL OTP
+  # ===========================================================================
+
+  - id: m4-send-document-api
+    title: "M4: POST /documents/:id/send — create signing requests"
+    type: manual
+    category: Platform
+    initiative: M4 Send for Signing
+    due_date: 2026-05-29
+    instructions: |
+      POST /documents/:id/send validates the document (draft status, at least
+      one field, all fields assigned) then:
+      - Creates one SigningRequest record per unique assignedToEmail
+      - Generates a unique signing token (cuid) per SigningRequest
+      - Sets Document.status to "sent"
+
+      Returns the list of signing requests created.
+
+      ## Acceptance criteria
+      - [ ] Validates: document must be draft; must have ≥1 field; all fields assigned
+      - [ ] Creates SigningRequest per unique signer email
+      - [ ] Each SigningRequest gets a unique cuid token
+      - [ ] Document.status → "sent"
+      - [ ] Returns signing request list in response
+
+      ## Test
+      Send a document with 2 signers → 2 SigningRequest rows in DB → document
+      status = "sent". Sending again → 409 (not draft).
+
+  - id: m4-otp-generation-email
+    title: "M4: OTP generation + signing invitation email via Mailhog"
+    type: manual
+    category: Platform
+    initiative: M4 Send for Signing
+    due_date: 2026-05-29
+    instructions: |
+      When a SigningRequest is created:
+      - Generate a 6-digit OTP, bcrypt hash it, store in SigningRequest.otpHash
+      - Set otpExpiresAt = now + 10 minutes
+      - Send signing invitation email via Mailhog (HTML template) with the
+        signing link: $APP_URL/sign/[token]
+      - Send OTP separately in a second email
+
+      Rate limiting on OTP endpoint: max 3 attempts per token, then invalidate.
+
+      ## Acceptance criteria
+      - [ ] 6-digit OTP generated and bcrypt-hashed before storage
+      - [ ] otpExpiresAt = now + 10 min
+      - [ ] Invitation email sent via Mailhog with signing link
+      - [ ] OTP sent in separate email
+      - [ ] Rate limit: 3 failed attempts → token invalidated
+      - [ ] Expired OTP → 401 with clear error message
+
+      ## Test
+      Send document → check Mailhog (localhost:8025) → 2 emails per signer.
+      Try wrong OTP 3 times → token invalidated. Wait for expiry → OTP rejected.
+      (Rachel gate)
+
+  - id: m4-sign-token-routes
+    title: "M4: GET + POST /sign/:token/* — token validation + OTP auth"
+    type: manual
+    category: Platform
+    initiative: M4 Send for Signing
+    due_date: 2026-05-30
+    instructions: |
+      Three signing routes (no session auth — public routes):
+      - GET /sign/:token — validate token (not expired/used), return document
+        metadata (title, signer name/email, fields count). No PDF yet.
+      - POST /sign/:token/authenticate — verify OTP → issue short-lived
+        signing JWT (stored in httpOnly cookie, 1hr expiry)
+      - GET /sign/:token/document — stream PDF via presigned MinIO URL
+        (only after OTP verified; signing JWT required)
+
+      ## Acceptance criteria
+      - [ ] GET /sign/:token — valid token returns metadata; invalid → 404
+      - [ ] POST /sign/:token/authenticate — correct OTP → signing JWT cookie
+      - [ ] POST /sign/:token/authenticate — wrong OTP → 401 (count attempts)
+      - [ ] GET /sign/:token/document — requires signing JWT; no JWT → 401
+      - [ ] Replay prevention: token single-use (marked viewed on first valid hit)
+
+      ## Test
+      Get signing link from invitation email → GET /sign/:token → metadata.
+      Enter wrong OTP → 401. Enter correct OTP → signing JWT set. GET
+      /sign/:token/document → PDF streams. (Rachel gate: replay attacks blocked)
+
+  # ===========================================================================
+  # M5 — SIGNING EXPERIENCE
+  # ===========================================================================
+
+  - id: m5-otp-verification-screen
+    title: "M5: /sign/[token] — OTP verification screen"
+    type: manual
+    category: Feature
+    initiative: M5 Signing Experience
+    due_date: 2026-05-31
+    instructions: |
+      Public route /sign/[token] — no auth required. First screen shown to
+      signer before OTP entry.
+
+      OTP verification UI:
+      - 6-box OTP input with auto-advance (focus moves to next box on digit entry)
+      - Teal focus ring on active box
+      - "Resend OTP" link (triggers new OTP email)
+      - Error state on wrong OTP
+      - On success → redirect to document reader
+
+      Mobile-first design. 44px minimum input height.
+
+      ## Acceptance criteria
+      - [ ] 6-box auto-advance OTP input
+      - [ ] Teal focus ring (--color-brand)
+      - [ ] Error state on wrong OTP
+      - [ ] Resend OTP link
+      - [ ] Redirect to document reader on success
+      - [ ] Works on 375px viewport, all touch targets ≥ 44px
+
+      ## Test
+      Open signing link → OTP screen. Enter digits (auto-advances). Submit
+      correct OTP → document reader loads. Submit wrong OTP → error shown.
+      On mobile 375px: all inputs tappable, no layout overflow.
+
+  - id: m5-document-reader
+    title: "M5: Signer document reader — react-pdf dark mode + field overlay"
+    type: manual
+    category: Feature
+    initiative: M5 Signing Experience
+    due_date: 2026-06-01
+    instructions: |
+      After OTP verified, signer sees the full document:
+      - PDF rendered in dark mode (react-pdf)
+      - Fields assigned to this signer are highlighted with a pulsing teal ring
+      - Fields already filled show their value
+      - Sticky bottom bar: "Jump to next field" button + progress indicator
+        ("2 of 5 fields completed")
+      - "Complete Signing" button (disabled until all required fields filled)
+
+      Page time tracked via IntersectionObserver (stored for audit trail).
+
+      ## Acceptance criteria
+      - [ ] react-pdf renders PDF in dark chrome
+      - [ ] Signer's fields highlighted (pulsing teal ring)
+      - [ ] Sticky bottom bar with jump-to-field + progress count
+      - [ ] "Complete Signing" active only when all required fields filled
+      - [ ] Page time tracked via IntersectionObserver
+      - [ ] All 4 UI states on async elements
+
+      ## Test
+      Enter signing flow → document renders → bottom bar shows "0 of N fields".
+      Fill all fields → "Complete Signing" button activates. (Amy gate)
+
+  - id: m5-signature-modal
+    title: "M5: Signature modal — Draw, Type, Upload tabs"
+    type: manual
+    category: Feature
+    initiative: M5 Signing Experience
+    due_date: 2026-06-01
+    instructions: |
+      Clicking a signature/initials field opens a modal (bottom sheet on mobile)
+      with three tabs:
+
+      **Draw tab:**
+      - react-signature-canvas with variable-width Bézier strokes
+      - Teal ink (#6ee7b7), clear button
+      - Canvas fills the modal
+
+      **Type tab:**
+      - Text input → 5 script font options (live preview)
+      - Selected font renders signature preview below input
+
+      **Upload tab:**
+      - Image drag-and-drop + file picker
+      - Max 2MB, validates image format (PNG/JPEG/SVG)
+      - Preview before applying
+
+      "Apply to all signature fields" checkbox — if checked, same signature
+      is pre-filled on all signature/initials fields assigned to this signer.
+
+      ## Acceptance criteria
+      - [ ] Three tabs: Draw, Type, Upload
+      - [ ] Draw: react-signature-canvas, Bézier, teal ink, clear button
+      - [ ] Type: text input + 5 font options + live preview
+      - [ ] Upload: image drop, max 2MB, format validation, preview
+      - [ ] "Apply to all" checkbox
+      - [ ] Bottom sheet on mobile (not a centered modal)
+      - [ ] 44px minimum touch targets on all controls
+
+      ## Test
+      Tap a signature field → modal opens. Draw tab works. Type tab cycles
+      fonts. Upload tab accepts PNG. "Apply to all" pre-fills other sig fields.
+      On 375px → bottom sheet, no scroll issues. (Amy gate)
+
+  - id: m5-field-submission-complete
+    title: "M5: Field submission + POST /sign/:token/complete"
+    type: manual
+    category: Platform
+    initiative: M5 Signing Experience
+    due_date: 2026-06-02
+    instructions: |
+      Each field submission saves the signer's response:
+      - POST /sign/:token/fields/:fieldId — body: { value, captureMethod }
+        Creates a Signature record (value = base64 image or typed text).
+        Returns updated field completion status.
+
+      After all required fields filled, signer clicks "Complete Signing":
+      - POST /sign/:token/complete
+        Marks SigningRequest.status = "signed", sets signedAt
+        Creates AuditEvent: document.signed
+        If all signers done → triggers document sealing (M6)
+
+      ## Acceptance criteria
+      - [ ] POST /sign/:token/fields/:fieldId creates Signature record
+      - [ ] Field completion status returned to UI
+      - [ ] POST /sign/:token/complete → SigningRequest.status = "signed"
+      - [ ] AuditEvent written: document.signed
+      - [ ] All signers signed → document sealing triggered
+      - [ ] Cannot complete if required fields missing → 400
+
+      ## Test
+      Fill all fields for signer 1 → complete → SigningRequest = signed.
+      Attempt complete with missing required field → 400 error returned.
+
+  # ===========================================================================
+  # M6 — DOCUMENT SEALING + AUDIT TRAIL
+  # ===========================================================================
+
+  - id: m6-pdf-sealing
+    title: "M6: Embed signatures into PDF using pdf-lib"
+    type: manual
+    category: Platform
+    initiative: M6 Document Sealing
+    due_date: 2026-06-03
+    instructions: |
+      When all SigningRequests are signed:
+      1. Download the original PDF from MinIO
+      2. Use pdf-lib to embed each signature at its field coordinates
+         (convert % coordinates back to absolute pts per page)
+      3. Compute signedHashSha256 of the sealed PDF
+      4. Upload sealed PDF to MinIO at signed/{documentId}.pdf
+      5. Update Document.signedFilePath and Document.signedHashSha256
+      6. Set Document.status = "completed"
+
+      Signatures may be: base64 image (draw/upload) rendered as an image,
+      or typed text rendered in the chosen script font.
+
+      ## Acceptance criteria
+      - [ ] pdf-lib embeds all signatures at correct positions
+      - [ ] Image signatures (draw/upload) appear as images
+      - [ ] Typed signatures appear as styled text
+      - [ ] signedHashSha256 computed from sealed bytes
+      - [ ] Sealed PDF stored at signed/{documentId}.pdf in MinIO
+      - [ ] Document.status → "completed"
+
+      ## Test
+      Complete signing → download sealed PDF → open in Preview/Acrobat →
+      signatures visible at field positions. Hash stored in DB matches
+      SHA-256 of downloaded file. (Ryan gate)
+
+  - id: m6-audit-trail-hash-chain
+    title: "M6: Append-only audit trail with SHA-256 hash chain"
+    type: manual
+    category: Platform
+    initiative: M6 Document Sealing
+    due_date: 2026-06-03
+    instructions: |
+      Every state-changing event writes an AuditEvent row. The chain:
+        eventHash = SHA256(prevHash + eventType + actorEmail + timestamp)
+
+      Events: document.created | sent | viewed | signed | completed |
+      declined | expired | voided
+
+      Ryan's rule: NO UPDATE or DELETE on AuditEvent ever. Only INSERTs.
+      Verify: grep codebase for AuditEvent + UPDATE/DELETE → must return zero.
+
+      ## Acceptance criteria
+      - [ ] AuditEvent written for every state transition
+      - [ ] Hash chain: each event hashes prevHash + eventType + actor + ts
+      - [ ] First event in chain: prevHash = null
+      - [ ] No UPDATE or DELETE on AuditEvent anywhere in codebase
+      - [ ] GET /documents/:id/audit returns full chain in order
+
+      ## Test
+      Send → view → sign → complete → 5 AuditEvents. Compute hash chain
+      manually → matches stored hashes. Grep UPDATE/DELETE → zero results.
+      Tamper a stored event → hash mismatch detected. (Rachel gate)
+
+  - id: m6-certificate-completion-email
+    title: "M6: Certificate of Completion PDF + completion emails"
+    type: manual
+    category: Feature
+    initiative: M6 Document Sealing
+    due_date: 2026-06-04
+    instructions: |
+      When document sealing completes:
+      1. Generate a Certificate of Completion PDF (pdf-lib):
+         - Document title, signers + signedAt timestamps, SHA-256 fingerprints
+         - Full audit trail in tabular format
+      2. Send completion email to all parties (sender + all signers) via Mailhog:
+         - Signed PDF attached
+         - Certificate of Completion attached
+      3. GET /documents/:id/download — stream sealed PDF from MinIO
+
+      ## Acceptance criteria
+      - [ ] Certificate of Completion PDF generated with full audit trail
+      - [ ] Completion email sent to sender + all signers via Mailhog
+      - [ ] Signed PDF + certificate attached to email
+      - [ ] GET /documents/:id/download streams sealed PDF from MinIO
+
+      ## Test
+      Complete signing → check Mailhog → completion email with 2 attachments.
+      Download signed PDF → signatures visible. Open certificate → audit trail
+      matches DB. (Ryan gate)
+
+  # ===========================================================================
+  # M7 — DASHBOARD + DOCUMENT LIST
+  # ===========================================================================
+
+  - id: m7-dashboard-stat-cards
+    title: "M7: Dashboard stat cards — docs this month, awaiting, completion rate"
+    type: manual
+    category: Feature
+    initiative: M7 Dashboard
+    due_date: 2026-06-05
+    instructions: |
+      Dashboard at /dashboard — three stat cards:
+      - Documents sent this month (count)
+      - Awaiting signature (count of sent/partially_signed docs)
+      - Completion rate (% of sent docs that reached completed this month)
+
+      Data from API (TanStack Query). Skeleton loading state. Empty state for
+      new users shows "Send your first document" CTA — not a blank screen.
+
+      ## Acceptance criteria
+      - [ ] 3 stat cards with correct queries
+      - [ ] Skeleton loading state on initial load
+      - [ ] Empty state (0 docs) → "Send your first document" CTA visible
+      - [ ] No useEffect for data fetching — TanStack Query only
+
+      ## Test
+      Fresh account → dashboard → empty state CTA visible. Upload + send doc →
+      stats update. (Amy gate: no blank screens)
+
+  - id: m7-document-list-search-filter
+    title: "M7: Document list — search, filter by status, sortable columns, pagination"
+    type: manual
+    category: Feature
+    initiative: M7 Dashboard
+    due_date: 2026-06-05
+    instructions: |
+      /documents page enhanced:
+      - Search by document title (debounced, 300ms)
+      - Filter by status (all | draft | sent | completed | expired | voided)
+      - Sortable columns: title, created date, status (client-side for now)
+      - Pagination (10 per page)
+      - Status badges: teal (completed), amber (awaiting/sent), red (declined),
+        gray (draft/voided)
+      - Empty states for each filter state — never a blank list
+
+      Ryan gate: backend pagination query must use an index, no full table scan.
+
+      ## Acceptance criteria
+      - [ ] Search by title (debounced)
+      - [ ] Filter by status (all statuses)
+      - [ ] Sortable columns
+      - [ ] Pagination (10/page)
+      - [ ] Status badges: teal/amber/red/gray by status
+      - [ ] Empty state for each filter (e.g., "No completed documents yet")
+      - [ ] Backend query uses indexed pagination (cursor or keyset)
+
+      ## Test
+      Upload 15 docs → list shows 10 → page 2 shows 5. Filter to "completed"
+      → filtered list with correct empty state. Search by partial title →
+      matching docs shown. (Amy gate: empty states; Ryan gate: indexed query)
+
+  - id: m7-document-detail-page
+    title: "M7: Document detail page — signer list, audit timeline, download"
+    type: manual
+    category: Feature
+    initiative: M7 Dashboard
+    due_date: 2026-06-05
+    instructions: |
+      /documents/[id] — when document is "sent" or later (not in editor mode):
+      - Document title and status badge
+      - Signer list with per-signer status (pending / sent / viewed / signed)
+      - Signed-at timestamp for completed signers
+      - Audit timeline (chronological list of AuditEvents)
+      - Download button (GET /documents/:id/download — only for completed docs)
+      - "Needs attention" banner for expired or unopened >48h docs
+
+      ## Acceptance criteria
+      - [ ] Signer list with per-signer status + timestamps
+      - [ ] Audit timeline in chronological order
+      - [ ] Download button for completed documents
+      - [ ] "Needs attention" banner for expired / unopened >48h
+      - [ ] All 4 UI states on async sections
+
+      ## Test
+      Complete a signing flow → detail page shows all signers as "signed",
+      audit timeline has 5+ events, download button downloads sealed PDF.
+      Expire a doc → "needs attention" banner appears.
+
+  # ===========================================================================
+  # M8 — TEMPLATES + BILLING GATE
+  # ===========================================================================
+
+  - id: m8-template-crud
+    title: "M8: Template creation, list, detail, and create-from-template"
+    type: manual
+    category: Feature
+    initiative: M8 Templates + Billing
+    due_date: 2026-06-06
+    instructions: |
+      Templates save a document + field config for reuse:
+      - POST /templates — save document (MinIO) + fieldConfig (JSON) as a template
+      - GET /templates — list org's templates
+      - GET /templates/:id — template detail + field preview
+      - POST /documents/from-template/:id — create a new document pre-populated
+        with the template's field config
+
+      UI: /templates list + /templates/new + /templates/[id] detail.
+
+      ## Acceptance criteria
+      - [ ] POST /templates creates Template with filePath + fieldConfig
+      - [ ] GET /templates — paginated list
+      - [ ] GET /templates/:id — detail
+      - [ ] POST /documents/from-template/:id — creates Document + copies fields
+      - [ ] Templates list UI with empty state
+      - [ ] "Use template" CTA on template detail
+
+      ## Test
+      Create template from a document with 3 fields. Use template → new doc
+      created with same 3 fields in same positions. Template list shows it.
+
+  - id: m8-stripe-billing
+    title: "M8: Stripe Checkout + webhook handler + plan enforcement"
+    type: manual
+    category: Platform
+    initiative: M8 Templates + Billing
+    due_date: 2026-06-07
+    instructions: |
+      Stripe integration (test mode):
+      - POST /billing/checkout — create Stripe Checkout session for plan upgrade
+      - POST /billing/webhook — handle checkout.session.completed → update
+        org.plan in DB. Validate Stripe signature.
+      - POST /billing/portal — create Stripe billing portal session
+
+      Plan enforcement middleware on POST /documents:
+      - Check org.plan + monthly document count
+      - Free tier: 5 docs/month hard limit (API enforced, not just UI)
+      - Over limit → 402 Payment Required with upgrade link
+
+      Ryan gate: monthly count query uses an index (no full table scan).
+      Mike gate: Stripe checkout works end-to-end in test mode.
+
+      ## Acceptance criteria
+      - [ ] Stripe Checkout creates session and redirects to Stripe
+      - [ ] Webhook handler validates signature + updates org.plan
+      - [ ] Billing portal session created and returned
+      - [ ] Free tier: 5 docs/month hard limit enforced in API
+      - [ ] Over limit → 402 + upgrade link
+      - [ ] Monthly count query uses Document.createdAt index
+
+      ## Test
+      Use Stripe test card → checkout completes → org.plan updated. Upload 6th
+      doc on free plan → 402 returned. (Mike gate: end-to-end checkout works)
+
+  - id: m8-billing-settings-page
+    title: "M8: Settings > Billing page — plan, usage meter, upgrade button"
+    type: manual
+    category: Feature
+    initiative: M8 Templates + Billing
+    due_date: 2026-06-07
+    instructions: |
+      /settings/billing page:
+      - Current plan badge (Free / Starter / Pro / Business)
+      - Usage meter: "3 of 5 documents used this month" (progress bar)
+      - Upgrade button → POST /billing/checkout → redirect to Stripe
+      - "Manage subscription" link → POST /billing/portal → Stripe portal
+      - Plan comparison table (simple: feature list per plan)
+
+      ## Acceptance criteria
+      - [ ] Current plan shown with badge
+      - [ ] Usage meter: docs used / limit this month
+      - [ ] Upgrade button works end-to-end
+      - [ ] Manage subscription opens Stripe portal
+      - [ ] Plan comparison table
+
+      ## Test
+      On free plan: usage meter shows X/5. Click "Upgrade" → Stripe Checkout.
+      After checkout: plan badge updates, usage limit increases.
+
+  # ===========================================================================
+  # M9 — WEBHOOKS + API KEYS
+  # ===========================================================================
+
+  - id: m9-webhook-endpoints
+    title: "M9: Webhook endpoint registration + BullMQ delivery with retry"
+    type: manual
+    category: Platform
+    initiative: M9 Webhooks + API Keys
+    due_date: 2026-06-08
+    instructions: |
+      Webhook system:
+      - POST /webhooks — register endpoint URL + event filter + auto-generated
+        HMAC secret. Stored in WebhookEndpoint table.
+      - GET /webhooks — list org's webhook endpoints
+      - DELETE /webhooks/:id — deactivate
+
+      BullMQ job: webhook-delivery
+      - POST event payload to registered URL
+      - HMAC-SHA256 signature header: X-Sealio-Signature: sha256=<hex>
+      - Retry: 3 retries, exponential backoff (1s, 5s, 30s)
+      - Dead-letter after final failure
+
+      GET /webhooks/:id/deliveries — delivery log (status, response code,
+      attempt count, timestamps).
+
+      Rachel gate: retry logic tested, HMAC verified.
+
+      ## Acceptance criteria
+      - [ ] POST /webhooks registers endpoint with event filter + HMAC secret
+      - [ ] BullMQ job fires on document.signed, document.completed, etc.
+      - [ ] HMAC-SHA256 header on every delivery
+      - [ ] 3 retries, exponential backoff (1s / 5s / 30s)
+      - [ ] Dead-letter on final failure
+      - [ ] Delivery log with status + response code + attempt count
+
+      ## Test
+      Register a webhook pointing to a local echo server. Complete a signing →
+      delivery attempt logged. Stop echo server → 3 retries logged → dead-letter.
+      Verify HMAC with the registered secret. (Rachel gate)
+
+  - id: m9-api-keys
+    title: "M9: API key creation, auth middleware, and revocation"
+    type: manual
+    category: Platform
+    initiative: M9 Webhooks + API Keys
+    due_date: 2026-06-08
+    instructions: |
+      Programmatic API access:
+      - POST /api-keys — generate sk_live_... prefixed key, store Argon2 hash
+        in ApiKey table (never plaintext). Return raw key once only.
+      - GET /api-keys — list (name, createdAt, lastUsedAt — no raw key)
+      - DELETE /api-keys/:id — revoke
+
+      Auth middleware: accepts Authorization: Bearer sk_live_... header as an
+      alternative to the JWT cookie. Same protections apply.
+
+      ## Acceptance criteria
+      - [ ] POST /api-keys generates sk_live_... prefix key
+      - [ ] Raw key returned once; only Argon2 hash stored in DB
+      - [ ] Authorization: Bearer header accepted on all protected routes
+      - [ ] GET /api-keys — list without raw key
+      - [ ] DELETE /api-keys/:id — revokes key
+
+      ## Test
+      Create key → copy raw value → curl a protected route with Bearer header →
+      200. Revoke key → same curl → 401. Raw key not stored in DB (only hash).
+
+  - id: m9-api-settings-page
+    title: "M9: Settings > API page — create/revoke keys, view webhook endpoints"
+    type: manual
+    category: Feature
+    initiative: M9 Webhooks + API Keys
+    due_date: 2026-06-08
+    instructions: |
+      /settings/api page:
+      - API Keys section: create key (name input → generate → show raw key once
+        in a copy-and-dismiss modal), list existing keys (name + last used),
+        revoke button per key
+      - Webhooks section: add endpoint URL + event filter + view HMAC secret,
+        list registered endpoints, delete endpoint
+
+      ## Acceptance criteria
+      - [ ] Create API key → raw key shown once in copy modal
+      - [ ] List keys with name + last used date
+      - [ ] Revoke key with confirmation
+      - [ ] Add webhook endpoint with URL + event filter
+      - [ ] View HMAC secret (show/hide toggle)
+      - [ ] Delete webhook endpoint
+
+      ## Test
+      Create key → modal shows raw key → copy → dismiss → key appears in list.
+      Raw key no longer accessible after dismiss. Add webhook → appears in list.
+      Delete → gone.

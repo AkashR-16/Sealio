@@ -1,0 +1,375 @@
+project: Sealio
+description: Developer-first e-signature SaaS platform
+
+milestones:
+
+  - id: M0
+    name: Scaffold
+    status: done
+    tasks:
+      - id: M0-1
+        task: Initialize Turborepo monorepo
+        status: done
+      - id: M0-2
+        task: Scaffold apps/web (Next.js 16, TypeScript, Tailwind v4, dark theme)
+        status: done
+      - id: M0-3
+        task: Scaffold apps/api (Fastify, TypeScript)
+        status: done
+      - id: M0-4
+        task: Scaffold packages/db (Prisma + postgres provider)
+        status: done
+      - id: M0-5
+        task: Scaffold packages/types (shared TypeScript types)
+        status: done
+      - id: M0-6
+        task: Create docker-compose.yml (postgres, redis, minio, mailhog)
+        status: done
+      - id: M0-7
+        task: Create .env.local template
+        status: done
+      - id: M0-8
+        task: Create turbo.json (dev, build, test pipelines)
+        status: done
+      - id: M0-9
+        task: Run prisma migrate dev — all 10 tables created
+        status: done
+      - id: M0-10
+        task: Seed database (demo org + user)
+        status: done
+      - id: M0-11
+        task: Verify docker compose up — all 4 services healthy
+        status: done
+      - id: M0-12
+        task: Verify pnpm dev — web on 3000, api on 3001
+        status: done
+
+  - id: M1
+    name: Database + Auth
+    status: done
+    tasks:
+      - id: M1-1
+        task: Generate RS256 JWT key pair, write to .env.local
+        status: done
+      - id: M1-2
+        task: Build JWT plugin (access + refresh tokens, httpOnly cookies)
+        status: done
+      - id: M1-3
+        task: POST /auth/signup — create org + user, return JWT pair
+        status: done
+      - id: M1-4
+        task: POST /auth/login — verify bcrypt password, return JWT pair
+        status: done
+      - id: M1-5
+        task: POST /auth/refresh — rotate refresh token
+        status: done
+      - id: M1-6
+        task: POST /auth/logout — clear cookies
+        status: done
+      - id: M1-7
+        task: GET /auth/me — return session user from JWT
+        status: done
+      - id: M1-8
+        task: Fastify authenticate decorator (auth middleware)
+        status: done
+      - id: M1-9
+        task: Next.js login page (/login)
+        status: done
+      - id: M1-10
+        task: Next.js signup page (/signup)
+        status: done
+      - id: M1-11
+        task: Next.js middleware — redirect unauthenticated to /login
+        status: done
+      - id: M1-12
+        task: Next.js middleware — redirect logged-in away from /login /signup
+        status: done
+      - id: M1-13
+        task: App shell layout with sticky nav + sign out
+        status: done
+      - id: M1-14
+        task: Dashboard page with stat cards + empty state
+        status: done
+      - id: M1-15
+        task: Integration tests — 13 tests, Rachel gate passed
+        status: done
+
+  - id: M2
+    name: Document Upload + Storage
+    status: done
+    tasks:
+      - id: M2-1
+        task: Create test-contract.pdf (2-page consulting agreement)
+        status: done
+      - id: M2-2
+        task: Create sealio-documents bucket in MinIO
+        status: done
+      - id: M2-3
+        task: MinIO client lib (upload, presign, stream, delete)
+        status: done
+      - id: M2-4
+        task: POST /documents — validate PDF magic bytes, SHA-256 hash, store to MinIO
+        status: done
+      - id: M2-5
+        task: Duplicate detection — same hash in same org returns 409
+        status: done
+      - id: M2-6
+        task: GET /documents — paginated document list
+        status: done
+      - id: M2-7
+        task: GET /documents/:id — document metadata
+        status: done
+      - id: M2-8
+        task: GET /documents/:id/file — presigned URL redirect to MinIO
+        status: done
+      - id: M2-9
+        task: Upload drop zone UI (drag-and-drop, progress spinner, error states)
+        status: done
+      - id: M2-10
+        task: Document list page with all 4 UI states
+        status: done
+      - id: M2-11
+        task: /documents/new page
+        status: done
+
+  - id: M3
+    name: PDF Viewer + Field Placement
+    status: done
+    tasks:
+      - id: M3-1
+        task: Render PDF pages in browser with pdfjs-dist
+        status: done
+      - id: M3-2
+        task: Canvas overlay layer for field placement (above PDF)
+        status: done
+      - id: M3-3
+        task: Field palette sidebar (signature, initials, date, full_name, text, checkbox)
+        status: done
+      - id: M3-4
+        task: Drag-to-place fields on canvas with resize handles
+        status: done
+      - id: M3-5
+        task: Signer assignment panel — add signers, assign fields by color
+        status: done
+      - id: M3-6
+        task: Page navigation (prev/next) and zoom controls
+        status: done
+      - id: M3-7
+        task: PUT /documents/:id/fields — save field config to DB
+        status: done
+      - id: M3-8
+        task: POST /documents/:id/detect-fields — stub endpoint (returns empty array)
+        status: done
+      - id: M3-9
+        task: Mobile touch support — collapse sidebar, 44px targets
+        status: done
+      - id: M3-10
+        task: All 4 UI states on every async element (Ashok gate)
+        status: done
+
+  - id: M4
+    name: Send for Signing + Email OTP
+    status: done
+    tasks:
+      - id: M4-1
+        task: POST /documents/:id/send — create SigningRequest records, set status to sent
+        status: done
+      - id: M4-2
+        task: Generate unique signing token per signer (cuid)
+        status: done
+      - id: M4-3
+        task: Generate 6-digit OTP, bcrypt hash, 10min expiry
+        status: done
+      - id: M4-4
+        task: Send signing invitation email via Mailhog (HTML template)
+        status: done
+      - id: M4-5
+        task: Send OTP email via Mailhog
+        status: done
+      - id: M4-6
+        task: GET /sign/:token — validate token, return document metadata
+        status: done
+      - id: M4-7
+        task: POST /sign/:token/authenticate — verify OTP, issue signing JWT
+        status: done
+      - id: M4-8
+        task: GET /sign/:token/document — stream PDF (only after OTP verified)
+        status: done
+      - id: M4-9
+        task: Rate limit OTP — max 3 attempts per token, then invalidate
+        status: done
+      - id: M4-10
+        task: Integration tests — OTP expiry, replay attacks, rate limiting (Rachel gate)
+        status: done
+
+  - id: M5
+    name: Signing Experience
+    status: done
+    tasks:
+      - id: M5-1
+        task: Public route /sign/[token] — no auth required
+        status: done
+      - id: M5-2
+        task: OTP verification screen — 6-box input, auto-advance, teal focus ring
+        status: done
+      - id: M5-3
+        task: Document reader — react-pdf dark mode, page time tracking
+        status: done
+      - id: M5-4
+        task: Sticky bottom bar — "jump to next field" + progress (2 of 5 fields)
+        status: done
+      - id: M5-5
+        task: Signature modal — Draw tab (react-signature-canvas, Bezier, teal ink)
+        status: done
+      - id: M5-6
+        task: Signature modal — Type tab (5 script fonts, live preview)
+        status: done
+      - id: M5-7
+        task: Signature modal — Upload tab (image drop, max 2MB)
+        status: done
+      - id: M5-8
+        task: "Apply to all signature fields" checkbox
+        status: done
+      - id: M5-9
+        task: POST /sign/:token/fields/:fieldId — field-by-field submission
+        status: done
+      - id: M5-10
+        task: POST /sign/:token/complete — mark SigningRequest signed
+        status: done
+      - id: M5-11
+        task: "Complete Signing" button active only when all required fields filled
+        status: done
+      - id: M5-12
+        task: Full mobile walkthrough at 375px — no pinch zoom (Amy gate)
+        status: done
+
+  - id: M6
+    name: Document Sealing + Audit Trail
+    status: pending
+    tasks:
+      - id: M6-1
+        task: Embed signatures into PDF using pdf-lib
+        status: pending
+      - id: M6-2
+        task: Compute signedHashSha256 of sealed document
+        status: pending
+      - id: M6-3
+        task: Store sealed PDF in MinIO at signed/{documentId}.pdf
+        status: pending
+      - id: M6-4
+        task: Update Document.status to completed
+        status: pending
+      - id: M6-5
+        task: Append-only AuditEvent writes — hash chain (SHA-256 of prevHash + eventType + actor + timestamp)
+        status: pending
+      - id: M6-6
+        task: Certificate of Completion PDF (pdf-lib, full audit trail)
+        status: pending
+      - id: M6-7
+        task: Completion emails to all parties via Mailhog (signed PDF + certificate)
+        status: pending
+      - id: M6-8
+        task: GET /documents/:id/download — stream sealed PDF from MinIO
+        status: pending
+      - id: M6-9
+        task: Hash chain integrity test — tamper test (Rachel gate)
+        status: pending
+      - id: M6-10
+        task: Verify no UPDATE/DELETE on AuditEvent table (Ryan gate)
+        status: pending
+
+  - id: M7
+    name: Dashboard + Document List
+    status: pending
+    tasks:
+      - id: M7-1
+        task: Dashboard stat cards — docs this month, awaiting signature, completion rate
+        status: pending
+      - id: M7-2
+        task: Recent documents table — title, signer, status badge, timestamp, action menu
+        status: pending
+      - id: M7-3
+        task: Status badges — teal completed, amber awaiting, red declined, gray draft
+        status: pending
+      - id: M7-4
+        task: Needs attention rail — expired docs, unopened >48h
+        status: pending
+      - id: M7-5
+        task: Document detail page — signer list, per-signer status, audit timeline, download
+        status: pending
+      - id: M7-6
+        task: Document list — search, filter by status, sortable columns, pagination
+        status: pending
+      - id: M7-7
+        task: Empty states on all lists — never a blank screen (Amy gate)
+        status: pending
+      - id: M7-8
+        task: First-time user sees clear "Send your first document" CTA
+        status: pending
+
+  - id: M8
+    name: Templates + Billing Gate
+    status: pending
+    tasks:
+      - id: M8-1
+        task: Template creation — save document + field config as template
+        status: pending
+      - id: M8-2
+        task: Template list + detail page
+        status: pending
+      - id: M8-3
+        task: Create document from template
+        status: pending
+      - id: M8-4
+        task: Stripe Checkout — plan upgrade flow (test mode)
+        status: pending
+      - id: M8-5
+        task: Stripe webhook handler — checkout.session.completed updates org.plan
+        status: pending
+      - id: M8-6
+        task: Stripe billing portal — POST /billing/portal
+        status: pending
+      - id: M8-7
+        task: Plan enforcement middleware — check org.plan + monthly doc count on POST /documents
+        status: pending
+      - id: M8-8
+        task: Free tier hard limit — 5 docs/month enforced in API not just UI
+        status: pending
+      - id: M8-9
+        task: Monthly document count query uses index — no full table scan (Ryan gate)
+        status: pending
+      - id: M8-10
+        task: Settings > Billing page — current plan, usage meter, upgrade button
+        status: pending
+      - id: M8-11
+        task: Stripe checkout works end-to-end in test mode (Mike gate)
+        status: pending
+
+  - id: M9
+    name: Webhooks + API Keys
+    status: pending
+    tasks:
+      - id: M9-1
+        task: POST /webhooks — register endpoint with event filter + HMAC secret
+        status: pending
+      - id: M9-2
+        task: BullMQ job — webhook-delivery (POST payload, HMAC-SHA256 header)
+        status: pending
+      - id: M9-3
+        task: Retry logic — 3 retries, exponential backoff (1s, 5s, 30s), dead-letter on failure
+        status: pending
+      - id: M9-4
+        task: GET /webhooks/:id/deliveries — delivery log with status + response code
+        status: pending
+      - id: M9-5
+        task: API key creation — generate sk_live_... prefix, store Argon2 hash in DB
+        status: pending
+      - id: M9-6
+        task: API key auth middleware — Authorization Bearer header
+        status: pending
+      - id: M9-7
+        task: Settings > API page — create/revoke keys, view webhooks, copy secret
+        status: pending
+      - id: M9-8
+        task: Webhook retry tested, HMAC verified (Rachel gate)
+        status: pending

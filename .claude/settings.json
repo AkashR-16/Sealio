@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(find /Users/akashramanarayanan/Desktop/Claude_Patterns/claude-patterns/personas -type f 2>/dev/null)",
+      "Read(//Users/akashramanarayanan/Desktop/Claude_Patterns/claude-patterns/personas/**)",
+      "Bash(ls -la /Users/akashramanarayanan/Desktop/Claude_Patterns/claude-patterns/ 2>/dev/null)",
+      "Read(//Users/akashramanarayanan/Desktop/Claude_Patterns/claude-patterns/**)",
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(npx --version)"
+    ]
+  }
+}

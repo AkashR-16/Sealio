@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique
+  plan           String    @default("free")
+  brandingConfig Json?
+  createdAt      DateTime  @default(now())
+
+  users     User[]
+  documents Document[]
+  templates Template[]
+  apiKeys   ApiKey[]
+  webhooks  WebhookEndpoint[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  orgId        String
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("member")
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id])
+  documents Document[]
+}
+
+model Document {
+  id               String    @id @default(cuid())
+  orgId            String
+  creatorId        String
+  title            String
+  status           String    @default("draft")
+  filePath         String
+  signedFilePath   String?
+  hashSha256       String?
+  signedHashSha256 String?
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  org             Organization    @relation(fields: [orgId], references: [id])
+  creator         User            @relation(fields: [creatorId], references: [id])
+  fields          DocumentField[]
+  signingRequests SigningRequest[]
+  auditEvents     AuditEvent[]
+}
+
+model DocumentField {
+  id              String   @id @default(cuid())
+  documentId      String
+  type            String
+  page            Int
+  x               Float
+  y               Float
+  width           Float
+  height          Float
+  required        Boolean  @default(true)
+  assignedToEmail String
+  createdAt       DateTime @default(now())
+
+  document  Document   @relation(fields: [documentId], references: [id])
+  signature Signature?
+}
+
+model SigningRequest {
+  id            String    @id @default(cuid())
+  documentId    String
+  signerEmail   String
+  signerName    String
+  order         Int       @default(0)
+  status        String    @default("pending")
+  authMethod    String    @default("email_otp")
+  token         String    @unique @default(cuid())
+  otpHash       String?
+  otpExpiresAt  DateTime?
+  otpAttempts   Int       @default(0)
+  otpVerifiedAt DateTime?
+  pageViewData  Json?     // [{ page: number, seconds: number }]
+  signedAt      DateTime?
+  declinedAt    DateTime?
+  declineReason String?
+  createdAt     DateTime  @default(now())
+
+  document   Document    @relation(fields: [documentId], references: [id])
+  signatures Signature[]
+}
+
+model Signature {
+  id               String   @id @default(cuid())
+  signingRequestId String
+  fieldId          String   @unique
+  value            String   @db.Text
+  captureMethod    String
+  signedAt         DateTime @default(now())
+
+  signingRequest SigningRequest @relation(fields: [signingRequestId], references: [id])
+  field          DocumentField @relation(fields: [fieldId], references: [id])
+}
+
+model AuditEvent {
+  id               String   @id @default(cuid())
+  documentId       String
+  signingRequestId String?
+  eventType        String
+  actorEmail       String?
+  ipAddress        String?
+  userAgent        String?
+  geoCountry       String?
+  geoCity          String?
+  metadata         Json?
+  prevHash         String?
+  eventHash        String
+  createdAt        DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@index([documentId])
+  @@index([createdAt])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  description String?
+  filePath    String
+  fieldConfig Json
+  createdAt   DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(cuid())
+  orgId     String
+  url       String
+  events    String[]
+  secret    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  orgId      String
+  keyHash    String    @unique
+  name       String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
