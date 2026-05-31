@@ -2,18 +2,33 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { ChevronDown } from "lucide-react"
 import { logoutAction } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 import type { AuthUser, AuthOrg } from "@/lib/auth"
 
-const navLinks = [
+const baseNavLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/documents", label: "Documents" },
   { href: "/templates", label: "Templates" },
 ]
 
+const liveUiTestItems = [
+  { href: "/live-ui-test/unit", label: "Unit Test" },
+  { href: "/live-ui-test/smoke", label: "Smoke Test" },
+  { href: "/live-ui-test/integration", label: "Integration Test" },
+  { href: "/live-ui-test/regression", label: "Regression Test" },
+]
+
 export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
   const pathname = usePathname()
+  const isTester = user.role === "tester"
 
   return (
     <nav className="sticky top-0 z-40 h-16 border-b border-border bg-background/80 backdrop-blur-sm">
@@ -28,7 +43,7 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {baseNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -42,6 +57,31 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
                 {link.label}
               </Link>
             ))}
+
+            {isTester && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1 px-3 py-1.5 rounded-md text-sm transition-colors",
+                      pathname.startsWith("/live-ui-test")
+                        ? "bg-surface text-foreground"
+                        : "text-foreground-muted hover:text-foreground hover:bg-surface",
+                    )}
+                  >
+                    Live UI Test
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {liveUiTestItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link href={item.href}>{item.label}</Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 

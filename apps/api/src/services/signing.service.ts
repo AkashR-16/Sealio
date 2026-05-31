@@ -157,6 +157,36 @@ export async function sendDocumentForSigning(params: {
   })
 }
 
+// ── OTP Resend ────────────────────────────────────────────────────────────────
+
+export async function resendOtp(token: string): Promise<void> {
+  const sr = await prisma.signingRequest.findUnique({
+    where: { token },
+    include: { document: { select: { title: true } } },
+  })
+  if (!sr) {
+    const err = new Error("Invalid signing link") as Error & { statusCode: number }
+    err.statusCode = 404
+    throw err
+  }
+  if (sr.status === "signed" || sr.status === "declined") {
+    const err = new Error("This signing request is already complete") as Error & { statusCode: number }
+    err.statusCode = 409
+    throw err
+  }
+
+  const otp = generateOtp()
+  const otpHash = await hashOtp(otp)
+  const otpExpiresAt = new Date(Date.now() + OTP_TTL_MS)
+
+  await prisma.signingRequest.update({
+    where: { token },
+    data: { otpHash, otpExpiresAt, otpAttempts: 0 },
+  })
+
+  await sendOtpEmail({ to: sr.signerEmail, signerName: sr.signerName, docTitle: sr.document.title, otp })
+}
+
 // ── Token validation ──────────────────────────────────────────────────────────
 
 export async function getSigningRequest(token: string) {

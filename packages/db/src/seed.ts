@@ -28,7 +28,30 @@ async function main() {
     },
   })
 
+  const testOrg = await prisma.organization.upsert({
+    where: { slug: "test-org" },
+    update: {},
+    create: {
+      name: "Test Org",
+      slug: "test-org",
+      plan: "pro",
+    },
+  })
+
+  const testUser = await prisma.user.upsert({
+    where: { email: "testuser@sealio.local" },
+    update: {},
+    create: {
+      orgId: testOrg.id,
+      email: "testuser@sealio.local",
+      passwordHash,
+      name: "Test User",
+      role: "tester",
+    },
+  })
+
   console.log("Seeded:", { org: org.slug, user: user.email })
+  console.log("Seeded:", { org: testOrg.slug, user: testUser.email })
 }
 
 main()

@@ -5,6 +5,7 @@ import {
   getSigningRequest,
   authenticateOtp,
   streamSignedDocument,
+  resendOtp,
 } from "../services/signing.service.js"
 
 function verifySigningCookie(
@@ -75,6 +76,19 @@ export async function signingRoutes(fastify: FastifyInstance) {
     } catch (err: any) {
       return reply.status(err.statusCode ?? 500).send({
         error: { code: "AUTH_FAILED", message: err.message },
+      })
+    }
+  })
+
+  // POST /sign/:token/resend-otp — issue a fresh OTP and re-send it by email
+  fastify.post("/sign/:token/resend-otp", async (request, reply) => {
+    const { token } = request.params as { token: string }
+    try {
+      await resendOtp(token)
+      return reply.send({ data: { ok: true } })
+    } catch (err: any) {
+      return reply.status(err.statusCode ?? 500).send({
+        error: { code: "RESEND_FAILED", message: err.message },
       })
     }
   })

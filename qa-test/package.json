@@ -1,0 +1,40 @@
+{
+  "name": "@sealio/qa-test",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run unit-test/",
+    "test:integration": "vitest run integration-test/",
+    "test:smoke": "vitest run smoke-test/",
+    "test:regression": "vitest run regression-test/"
+  },
+  "dependencies": {
+    "@sealio/db": "workspace:*",
+    "@sealio/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^10.0.2",
+    "@fastify/formbody": "^8.0.2",
+    "@fastify/helmet": "^13.0.1",
+    "@fastify/jwt": "^9.1.0",
+    "@fastify/multipart": "^9.0.3",
+    "@fastify/rate-limit": "^10.2.2",
+    "@fastify/swagger": "^9.4.2",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@types/node": "^22.15.18",
+    "bcryptjs": "^3.0.2",
+    "fastify": "^5.3.3",
+    "fastify-plugin": "^5.1.0",
+    "minio": "^8.0.5",
+    "nodemailer": "^6.10.1",
+    "pdf-lib": "^1.17.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.14",
+    "vitest": "^3.2.3",
+    "zod": "^3.25.28"
+  }
+}
