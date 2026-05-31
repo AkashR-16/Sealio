@@ -1,0 +1,129 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]
+   /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 2605 >>
+stream
+BT
+/F1 18 Tf
+50 760 Td
+(SOFTWARE DEVELOPMENT AGREEMENT) Tj
+0 -35 Td
+/F1 10 Tf
+(This Software Development Agreement ("Agreement") is entered into as of June 1, 2026,) Tj
+0 -18 Td
+(between Sealio Technologies Inc., a Delaware corporation ("Company"), and the) Tj
+0 -18 Td
+(independent contractor identified below ("Developer").) Tj
+
+0 -30 Td
+/F1 13 Tf
+(1. SCOPE OF WORK) Tj
+0 -20 Td
+/F1 10 Tf
+(Developer agrees to design, develop, and deliver software as mutually agreed upon in) Tj
+0 -18 Td
+(writing. All deliverables must meet the acceptance criteria defined in each project brief.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(2. COMPENSATION) Tj
+0 -20 Td
+/F1 10 Tf
+(Company shall pay Developer at the rate of $150 USD per hour for all approved work.) Tj
+0 -18 Td
+(Invoices are due net-30. Late payments accrue interest at 1.5% per month.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(3. INTELLECTUAL PROPERTY) Tj
+0 -20 Td
+/F1 10 Tf
+(All work product created under this Agreement shall be considered "work made for hire") Tj
+0 -18 Td
+(and shall be the sole and exclusive property of Company upon full payment.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(4. CONFIDENTIALITY) Tj
+0 -20 Td
+/F1 10 Tf
+(Developer shall hold in strict confidence all proprietary information of Company and) Tj
+0 -18 Td
+(shall not disclose it to any third party during or after the term of this Agreement.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(5. TERM & TERMINATION) Tj
+0 -20 Td
+/F1 10 Tf
+(This Agreement commences on the date above and continues until terminated. Either) Tj
+0 -18 Td
+(party may terminate with 14 days written notice. Company may terminate immediately) Tj
+0 -18 Td
+(for material breach.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(6. INDEPENDENT CONTRACTOR) Tj
+0 -20 Td
+/F1 10 Tf
+(Developer is an independent contractor and not an employee. Developer is responsible) Tj
+0 -18 Td
+(for all taxes and benefits. This Agreement does not create a partnership or joint venture.) Tj
+
+0 -28 Td
+/F1 13 Tf
+(7. GOVERNING LAW) Tj
+0 -20 Td
+/F1 10 Tf
+(This Agreement shall be governed by the laws of the State of Delaware, USA.) Tj
+
+0 -40 Td
+/F1 10 Tf
+(IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.) Tj
+
+0 -40 Td
+/F1 11 Tf
+(COMPANY: Sealio Technologies Inc.) Tj
+0 -35 Td
+/F1 10 Tf
+(Signature: ___________________________________     Date: ________________) Tj
+0 -20 Td
+(Name: _______________________________________     Title: _______________) Tj
+
+0 -35 Td
+/F1 11 Tf
+(DEVELOPER) Tj
+0 -35 Td
+/F1 10 Tf
+(Signature: ___________________________________     Date: ________________) Tj
+0 -20 Td
+(Name: _______________________________________     Title: _______________) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000244 00000 n 
+0000002901 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2971
+%%EOF
