@@ -65,14 +65,18 @@ export async function createDocument(params: {
   return updated
 }
 
+const MAX_PAGE_SIZE = 100
+
 export async function listDocuments(orgId: string, page = 1, limit = 20) {
-  const skip = (page - 1) * limit
+  // Cap page size so a caller can't request an unbounded number of rows.
+  const safeLimit = Math.min(Math.max(1, limit), MAX_PAGE_SIZE)
+  const skip = (page - 1) * safeLimit
   const [documents, total] = await Promise.all([
     prisma.document.findMany({
       where: { orgId },
       orderBy: { createdAt: "desc" },
       skip,
-      take: limit,
+      take: safeLimit,
       include: {
         creator: { select: { id: true, name: true, email: true } },
         _count: { select: { signingRequests: true } },
@@ -80,7 +84,7 @@ export async function listDocuments(orgId: string, page = 1, limit = 20) {
     }),
     prisma.document.count({ where: { orgId } }),
   ])
-  return { documents, total, page, limit, totalPages: Math.ceil(total / limit) }
+  return { documents, total, page, limit: safeLimit, totalPages: Math.ceil(total / safeLimit) }
 }
 
 export async function getDocument(id: string, orgId: string) {
