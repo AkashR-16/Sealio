@@ -93,13 +93,26 @@ export async function asJson(res: Response): Promise<any> {
   return res.json().catch(() => ({}))
 }
 
+/** Pulls the API's error message out of a failed response body (so logs show *why*, not just the status). */
+export async function errBody(res: Response): Promise<string> {
+  try {
+    const j = await res.clone().json()
+    return j?.error?.message ?? j?.message ?? ""
+  } catch {
+    return (await res.text().catch(() => "")).trim().slice(0, 300)
+  }
+}
+
 // ─── Shared operations (use the tester's own session) ─────────────────────────
 
 export async function uploadDoc(): Promise<string> {
   const fd = new FormData()
   fd.append("file", miniPdfBlob(), "live-test.pdf")
   const res = await fetch(`${API}/documents`, { method: "POST", credentials: "include", body: fd })
-  assert(res.status === 201, `Upload expected 201, got ${res.status}`)
+  if (res.status !== 201) {
+    const msg = await errBody(res)
+    throw new Error(`Upload expected 201, got ${res.status}${msg ? ` — ${msg}` : ""}`)
+  }
   const j = await res.json()
   assert(j.data?.id, "Upload response missing document id")
   return j.data.id
