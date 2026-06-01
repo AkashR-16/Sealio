@@ -9,6 +9,7 @@ import { documentRoutes } from "./routes/documents.js"
 import { fieldRoutes } from "./routes/fields.js"
 import { sendRoutes } from "./routes/send.js"
 import { signingRoutes } from "./routes/signing.js"
+import { devMailRoutes } from "./routes/dev-mail.js"
 import { env } from "./lib/env.js"
 
 const server = Fastify({
@@ -42,6 +43,7 @@ async function bootstrap() {
   await server.register(fieldRoutes)
   await server.register(sendRoutes)
   await server.register(signingRoutes)
+  await server.register(devMailRoutes)
 
   server.get("/health", async () => ({ status: "ok", ts: new Date().toISOString() }))
 

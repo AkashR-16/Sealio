@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server"
 // next.config.ts), and the API enforces its own auth. Gating it here would 307-redirect
 // unauthenticated-but-valid calls — e.g. /health, and a *signer's* OTP/signing requests, since
 // signers have no access_token cookie — to /login. It also covers the /api/live-ui-test/otp route.
-const PUBLIC_PATHS = ["/", "/login", "/signup", "/sign", "/cmaps", "/api"]
+const PUBLIC_PATHS = ["/", "/login", "/signup", "/sign", "/cmaps", "/api", "/inbox"]
 
 // Belt-and-suspenders: skip any path that looks like a static file
 const STATIC_EXT = /\.(js|mjs|cjs|css|map|json|txt|xml|pdf|woff2?|ttf|otf)$/i
