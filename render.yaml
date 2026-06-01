@@ -25,7 +25,7 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @sealio/db generate
+    buildCommand: npm i -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @sealio/db generate
     # Run pending migrations on each boot (idempotent), then start the server.
     startCommand: pnpm --filter @sealio/db exec prisma migrate deploy && pnpm --filter @sealio/api exec tsx src/server.ts
     healthCheckPath: /health
@@ -78,7 +78,7 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @sealio/web build
+    buildCommand: npm i -g pnpm@10 && pnpm install --frozen-lockfile && pnpm --filter @sealio/web build
     startCommand: pnpm --filter @sealio/web exec next start --port $PORT
     envVars:
       - key: NODE_ENV
