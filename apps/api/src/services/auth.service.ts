@@ -1,6 +1,7 @@
 import { hash, compare } from "bcryptjs"
 import { prisma } from "@sealio/db"
 import type { FastifyInstance } from "fastify"
+import { env } from "../lib/env.js"
 
 export interface SignupInput {
   name: string
@@ -95,11 +96,11 @@ export function issueTokens(
 ) {
   const access = fastify.jwt.sign(
     { ...payload, type: "access" },
-    { expiresIn: "15m" },
+    { expiresIn: env.JWT_ACCESS_EXPIRY },
   )
   const refresh = fastify.jwt.sign(
     { ...payload, type: "refresh" },
-    { expiresIn: "7d" },
+    { expiresIn: env.JWT_REFRESH_EXPIRY },
   )
   return { access, refresh }
 }
