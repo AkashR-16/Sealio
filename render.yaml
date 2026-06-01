@@ -1,0 +1,114 @@
+# Render Blueprint for Sealio (qa-test branch)
+# ----------------------------------------------------------------------------
+# Deploys, all on Render's FREE tier:
+#   • sealio-web      — Next.js app (the ONE public URL you share with a tester)
+#   • sealio-api      — Fastify API (run via tsx; the web app proxies /api/* to it)
+#   • sealio-mailhog  — Mail catcher; its public UI is where the tester reads their OTP
+#   • sealio-db       — Postgres
+#
+# Object storage is Cloudflare R2 (free, S3-compatible) — created separately (see DEPLOY.md).
+# Redis is intentionally omitted: the app does not use it.
+#
+# Fields marked `sync: false` must be filled in the Render dashboard after the first deploy
+# (Render assigns the public/internal URLs). See DEPLOY.md for the exact click-by-click steps.
+
+databases:
+  - name: sealio-db
+    databaseName: sealio
+    user: sealio
+    plan: free   # NOTE: Render free Postgres is deleted after 30 days. Use Neon for a longer-lived DB.
+
+services:
+  # ── API (Fastify, run through tsx so workspace TS packages resolve) ──────────
+  - type: web
+    name: sealio-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @sealio/db generate
+    # Run pending migrations on each boot (idempotent), then start the server.
+    startCommand: pnpm --filter @sealio/db exec prisma migrate deploy && pnpm --filter @sealio/api exec tsx src/server.ts
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sealio-db
+          property: connectionString
+      - key: JWT_PRIVATE_KEY
+        sync: false   # paste the RS256 private key (PEM) — reuse the one in .env.local or generate fresh
+      - key: JWT_PUBLIC_KEY
+        sync: false   # paste the matching RS256 public key (PEM)
+      - key: SESSION_SECRET
+        generateValue: true
+      # Used for CORS and for the signing-link base in OTP/invite emails.
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false   # FILL-IN after deploy: the sealio-web public URL, e.g. https://sealio-web-xxxx.onrender.com
+      # SMTP → Mailhog (internal network). Host = the Mailhog service's internal hostname.
+      - key: SMTP_HOST
+        sync: false   # FILL-IN: sealio-mailhog internal hostname (Render → service → "Internal Address")
+      - key: SMTP_PORT
+        value: 1025
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_FROM
+        value: noreply@sealio.local
+      # Object storage → Cloudflare R2 (S3-compatible)
+      - key: MINIO_ENDPOINT
+        sync: false   # FILL-IN: <accountid>.r2.cloudflarestorage.com
+      - key: MINIO_PORT
+        value: 443
+      - key: MINIO_USE_SSL
+        value: "true"
+      - key: MINIO_REGION
+        value: auto
+      - key: MINIO_ACCESS_KEY
+        sync: false   # R2 API token access key id
+      - key: MINIO_SECRET_KEY
+        sync: false   # R2 API token secret
+      - key: MINIO_BUCKET
+        value: sealio-documents
+
+  # ── Web (Next.js) ───────────────────────────────────────────────────────────
+  - type: web
+    name: sealio-web
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @sealio/web build
+    startCommand: pnpm --filter @sealio/web exec next start --port $PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # The browser calls same-origin /api/* — NEXT_PUBLIC_* values are inlined at BUILD time.
+      - key: NEXT_PUBLIC_API_URL
+        value: /api
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false   # FILL-IN: this web service's own public URL (same value as the API's NEXT_PUBLIC_APP_URL)
+      # Server-side: where the /api rewrite (next.config.ts) and the auth server actions reach the API.
+      - key: INTERNAL_API_URL
+        sync: false   # FILL-IN: http://<sealio-api internal hostname>:3001
+      - key: API_URL
+        sync: false   # FILL-IN: same value as INTERNAL_API_URL
+      # The Live UI Test OTP proxy (app/api/live-ui-test/otp) reads Mailhog's HTTP API.
+      - key: MAILHOG_URL
+        sync: false   # FILL-IN: http://<sealio-mailhog internal hostname>:8025
+
+  # ── Mailhog (mail catcher; public UI for reading OTP codes) ─────────────────
+  # If Render does not auto-route to the UI port, set this service's port to 8025 in the dashboard.
+  - type: web
+    name: sealio-mailhog
+    runtime: image
+    plan: free
+    image:
+      url: mailhog/mailhog:latest
+    envVars:
+      - key: MH_UI_BIND_ADDR
+        value: 0.0.0.0:8025
+      - key: MH_API_BIND_ADDR
+        value: 0.0.0.0:8025
+      - key: MH_SMTP_BIND_ADDR
+        value: 0.0.0.0:1025

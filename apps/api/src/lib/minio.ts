@@ -6,6 +6,9 @@ export const minio = new Client({
   useSSL: process.env.MINIO_USE_SSL === "true",
   accessKey: process.env.MINIO_ACCESS_KEY ?? "minioadmin",
   secretKey: process.env.MINIO_SECRET_KEY ?? "minioadmin",
+  // S3-compatible hosts (e.g. Cloudflare R2) expect a region — R2 uses "auto".
+  // Left undefined for local MinIO, which keeps the client's default behaviour.
+  region: process.env.MINIO_REGION || undefined,
 })
 
 export const BUCKET = process.env.MINIO_BUCKET ?? "sealio-documents"
