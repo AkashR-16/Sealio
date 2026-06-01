@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, CheckCircle2, XCircle, Circle, Play, X } from "lucide-react"
+import { Loader2, CheckCircle2, XCircle, Circle, Play, X, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { PHASES } from "./phase-config"
@@ -56,10 +56,27 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
     setFinished(true)
   }
 
-  function copySummary() {
+  function buildReport() {
     const lines = steps.map((s, i) => `${states[i].status === "passed" ? "PASS" : states[i].status === "failed" ? "FAIL" : "—"}  ${s.label}${states[i].error ? `  → ${states[i].error}` : ""}`)
-    const header = `${config.title} — ${passed}/${steps.length} passed`
-    navigator.clipboard?.writeText([header, "", ...lines].join("\n"))
+    const header = `${config.title} — ${passed}/${steps.length} passed (${failed} failed)`
+    const meta = `Generated: ${new Date().toISOString()}`
+    return [header, meta, "", ...lines].join("\n")
+  }
+
+  function copySummary() {
+    navigator.clipboard?.writeText(buildReport())
+  }
+
+  function downloadLog() {
+    const blob = new Blob([buildReport()], { type: "text/plain;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `sealio-${phase}-test-log-${new Date().toISOString().replace(/[:.]/g, "-")}.txt`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
   }
 
   const allPassed = finished && failed === 0
@@ -137,9 +154,15 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
               />
             </div>
             {finished && (
-              <button onClick={copySummary} className="w-full text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
-                Copy summary to clipboard
-              </button>
+              <div className="flex gap-2">
+                <button onClick={copySummary} className="flex-1 text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
+                  Copy summary
+                </button>
+                <button onClick={downloadLog} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
+                  <Download className="h-3.5 w-3.5" />
+                  Download log
+                </button>
+              </div>
             )}
           </div>
         </aside>
