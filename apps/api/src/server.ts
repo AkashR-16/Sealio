@@ -28,9 +28,11 @@ async function bootstrap() {
     credentials: true,
   })
   await server.register(cookie, { secret: env.SESSION_SECRET })
-  // Relax rate limit in dev/test so e2e suites don't exhaust the quota
+  // Requests reach the API proxied from the web service's single IP, so every user shares one
+  // rate-limit bucket — the old 100/min production cap throttled the Live UI Test suites.
+  // Configurable via RATE_LIMIT_MAX; the high default keeps the limiter active without breaking runs.
   await server.register(rateLimit, {
-    max: env.NODE_ENV === "production" ? 100 : 2000,
+    max: Number(process.env.RATE_LIMIT_MAX ?? 2000),
     timeWindow: "1 minute",
   })
 

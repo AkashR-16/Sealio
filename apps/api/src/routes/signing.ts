@@ -68,7 +68,9 @@ export async function signingRoutes(fastify: FastifyInstance) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        path: "/sign",
+        // Must be "/" (not "/sign"): in the single-origin deploy the browser calls the API at
+        // /api/sign/*, so a cookie scoped to /sign is never sent back. Matches access_token.
+        path: "/",
         maxAge: 60 * 60 * 2, // 2h
       })
 
