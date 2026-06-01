@@ -32,8 +32,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 3001
+      # No PORT here on purpose: Render injects PORT (default 10000) and scans
+      # that same port. The app reads process.env.PORT, so it binds what Render
+      # expects. (Hardcoding a different port => "No open ports detected".)
       - key: DATABASE_URL
         fromDatabase:
           name: sealio-db
@@ -90,7 +91,7 @@ services:
         sync: false   # FILL-IN: this web service's own public URL (same value as the API's NEXT_PUBLIC_APP_URL)
       # Server-side: where the /api rewrite (next.config.ts) and the auth server actions reach the API.
       - key: INTERNAL_API_URL
-        sync: false   # FILL-IN: http://<sealio-api internal hostname>:3001
+        sync: false   # FILL-IN: http://<sealio-api internal hostname>:10000  (Render's injected port)
       - key: API_URL
         sync: false   # FILL-IN: same value as INTERNAL_API_URL
       # The Live UI Test OTP proxy (app/api/live-ui-test/otp) reads Mailhog's HTTP API.

@@ -62,7 +62,8 @@ Render assigns URLs on first deploy. Grab them, then set:
 
 **sealio-web**
 - `NEXT_PUBLIC_APP_URL` = its own public URL (same value as the API's).
-- `INTERNAL_API_URL` and `API_URL` = `http://<sealio-api internal hostname>:3001`.
+- `INTERNAL_API_URL` and `API_URL` = `http://<sealio-api internal hostname>:10000` (Render assigns
+  the API port via `PORT`, which defaults to **10000** — not 3001).
 - `MAILHOG_URL` = `http://<sealio-mailhog internal hostname>:8025`.
 
 > `NEXT_PUBLIC_*` are inlined at build, so after setting them, **trigger a redeploy of sealio-web**.
