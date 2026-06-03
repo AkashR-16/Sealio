@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.git
+.next
+**/.next
+apps/web/.next
+dist
+**/dist
+*.log
+.env.local
+.env*.local
+.turbo
+**/.turbo
