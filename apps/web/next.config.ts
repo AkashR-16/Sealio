@@ -16,7 +16,13 @@ const nextConfig: NextConfig = {
   // falls back to localhost:3001 locally, so `pnpm dev` is unchanged. (When NEXT_PUBLIC_API_URL
   // is "/api", the browser hits same-origin `/api/*` and this rewrite forwards it.)
   async rewrites() {
-    const apiTarget = process.env.INTERNAL_API_URL ?? "http://localhost:3001"
+    // Where the browser's same-origin /api/* calls are proxied. Prefer the env var; on Vercel
+    // fall back to the production API (a localhost fallback there is a private IP Vercel rejects
+    // with DNS_HOSTNAME_RESOLVED_PRIVATE); locally fall back to the dev API.
+    const apiTarget =
+      process.env.INTERNAL_API_URL ||
+      process.env.API_URL ||
+      (process.env.VERCEL ? "https://sealio-api.onrender.com" : "http://localhost:3001")
     return [{ source: "/api/:path*", destination: `${apiTarget}/:path*` }]
   },
   // Turbopack (default in Next 16) — canvas is an optional Node-only dep of pdfjs-dist, not needed in browser

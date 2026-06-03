@@ -2,8 +2,7 @@
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-
-const API_URL = process.env.API_URL ?? "http://localhost:3001"
+import { SERVER_API_URL as API_URL } from "./api-base"
 
 // Seeded tester account used by the one-click "Tester" button. Kept server-side (never shipped
 // to the client) so the shared demo credentials aren't exposed. Override via env if reseeded.

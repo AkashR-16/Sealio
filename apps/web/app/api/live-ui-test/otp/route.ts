@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { SERVER_API_URL } from "@/lib/api-base"
 
 // Returns the latest 6-digit verification code for a recipient.
 //
 // Primary source is the API's in-memory mailbox (/dev/mail): on the single-origin deploy the
 // API can't reach Mailhog's SMTP, so it captures outgoing mail itself. Falls back to Mailhog's
-// HTTP API for local dev, where real SMTP delivery works. Server-side base mirrors the auth
-// actions (API_URL / INTERNAL_API_URL).
-const API = process.env.API_URL ?? process.env.INTERNAL_API_URL ?? "http://localhost:3001"
+// HTTP API for local dev, where real SMTP delivery works.
+const API = SERVER_API_URL
 const MAILHOG = process.env.MAILHOG_URL ?? "http://localhost:8025"
 
 interface MailItem {
