@@ -5,6 +5,11 @@ import { redirect } from "next/navigation"
 
 const API_URL = process.env.API_URL ?? "http://localhost:3001"
 
+// Seeded tester account used by the one-click "Tester" button. Kept server-side (never shipped
+// to the client) so the shared demo credentials aren't exposed. Override via env if reseeded.
+const TESTER_EMAIL = process.env.TESTER_EMAIL ?? "testuser@sealio.local"
+const TESTER_PASSWORD = process.env.TESTER_PASSWORD ?? "password123"
+
 function parseSetCookie(header: string): { name: string; value: string; options: Record<string, string> } {
   const parts = header.split(";").map((p) => p.trim())
   const [nameValue, ...attrs] = parts
@@ -86,6 +91,29 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     return { error: "Could not connect to server. Is the API running?" }
   }
 
+  redirect("/dashboard")
+}
+
+// One-click tester sign-in: authenticates as the seeded tester account and lands on the
+// dashboard, so demo testers don't need to be handed the shared credentials.
+export async function loginAsTesterAction() {
+  let ok = false
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: TESTER_EMAIL, password: TESTER_PASSWORD }),
+    })
+    if (res.ok) {
+      await forwardCookies(res)
+      ok = true
+    }
+  } catch {
+    ok = false
+  }
+
+  // redirect() throws, so call it outside the try/catch.
+  if (!ok) redirect("/login?error=tester-unavailable")
   redirect("/dashboard")
 }
 

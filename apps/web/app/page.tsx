@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { loginAsTesterAction } from "@/lib/auth-actions"
 
 export default function Home() {
   return (
@@ -34,10 +35,21 @@ export default function Home() {
           >
             Sign in
           </Link>
+          <form action={loginAsTesterAction}>
+            <button
+              type="submit"
+              className="inline-flex h-11 items-center px-6 rounded-md border border-brand/40 text-brand font-medium text-sm hover:bg-brand/10 transition-colors"
+            >
+              Tester
+            </button>
+          </form>
         </div>
 
         <p className="text-xs text-foreground-subtle mt-4">
           5 documents/month free · No credit card required
+        </p>
+        <p className="text-xs text-foreground-subtle">
+          QA reviewer? Click <span className="text-brand">Tester</span> to enter the demo — no login needed.
         </p>
       </div>
     </main>
