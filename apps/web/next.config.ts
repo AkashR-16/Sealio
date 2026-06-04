@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
     // fall back to the dev API.
     const apiTarget =
       process.env.INTERNAL_API_URL || process.env.API_URL || "http://localhost:3001"
+    console.log(
+      `[next.config] rewrites apiTarget=${apiTarget} INTERNAL_API_URL=${process.env.INTERNAL_API_URL ?? "<unset>"} API_URL=${process.env.API_URL ?? "<unset>"} NEXT_PUBLIC_API_URL=${process.env.NEXT_PUBLIC_API_URL ?? "<unset>"}`,
+    )
     return [{ source: "/api/:path*", destination: `${apiTarget}/:path*` }]
   },
   // Turbopack (default in Next 16) — canvas is an optional Node-only dep of pdfjs-dist, not needed in browser
