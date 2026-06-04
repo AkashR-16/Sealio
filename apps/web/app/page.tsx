@@ -38,7 +38,7 @@ export default function Home() {
           <form action={loginAsTesterAction}>
             <button
               type="submit"
-              className="inline-flex h-11 items-center px-6 rounded-md border border-brand/40 text-brand font-medium text-sm hover:bg-brand/10 transition-colors"
+              className="inline-flex h-11 items-center px-6 rounded-md border border-brand/40 text-brand font-medium text-sm hover:bg-brand/10 transition-colors cursor-pointer"
             >
               Tester
             </button>
