@@ -24,7 +24,10 @@ const server = Fastify({
 async function bootstrap() {
   await server.register(helmet, { contentSecurityPolicy: false })
   await server.register(cors, {
-    origin: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+    // `||` + trim (not `??`) so a blank/whitespace-only env var also falls back. @fastify/cors
+    // rejects an empty-string origin with "Invalid CORS origin option" on every request
+    // (including /health), so a stray blank NEXT_PUBLIC_APP_URL on the host would 500 the whole API.
+    origin: process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000",
     credentials: true,
   })
   await server.register(cookie, { secret: env.SESSION_SECRET })
