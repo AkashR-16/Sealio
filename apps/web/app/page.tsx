@@ -12,7 +12,7 @@ export default function Home() {
           <span className="text-2xl font-bold tracking-tight">Sealio</span>
         </div>
 
-        <h1 className="text-5xl font-extrabold tracking-tight leading-tight">
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
           E-Signatures built for{" "}
           <span className="text-brand">modern teams.</span>
         </h1>
@@ -22,7 +22,7 @@ export default function Home() {
           and a developer-first API.
         </p>
 
-        <div className="flex gap-4 mt-2">
+        <div className="flex flex-wrap justify-center gap-4 mt-2">
           <Link
             href="/signup"
             className="inline-flex h-11 items-center px-6 rounded-md bg-brand text-background font-semibold text-sm hover:bg-brand-dim transition-colors shadow-[0_0_20px_rgba(110,231,183,0.3)]"

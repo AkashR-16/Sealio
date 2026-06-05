@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Menu } from "lucide-react"
 import { logoutAction } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
 import {
@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import type { AuthUser, AuthOrg } from "@/lib/auth"
 
@@ -34,7 +36,54 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
     <nav className="sticky top-0 z-40 h-16 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
         {/* Logo + nav links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-3 md:gap-8">
+          {/* Mobile hamburger — visible < md (desktop uses the inline links below) */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Open navigation menu"
+                  className="-ml-1 flex h-9 w-9 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-50">
+                {baseNavLinks.map((link) => (
+                  <DropdownMenuItem key={link.href} asChild>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        pathname.startsWith(link.href) && "bg-background text-foreground",
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+
+                {isTester && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Live UI Test</DropdownMenuLabel>
+                    {liveUiTestItems.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            pathname.startsWith(item.href) && "bg-background text-foreground",
+                          )}
+                        >
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="h-7 w-7 rounded-lg bg-brand flex items-center justify-center">
               <span className="text-background font-bold text-sm">S</span>
