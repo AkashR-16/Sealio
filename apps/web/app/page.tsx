@@ -1,9 +1,10 @@
 import Link from "next/link"
-import { loginAsTesterAction } from "@/lib/auth-actions"
+import { DebugToggle } from "./debug-toggle"
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center min-h-screen px-6">
+    <main className="relative flex flex-1 flex-col items-center justify-center min-h-screen px-6">
+      <DebugToggle />
       <div className="flex flex-col items-center gap-6 text-center max-w-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-10 w-10 rounded-xl bg-brand flex items-center justify-center">
@@ -35,21 +36,10 @@ export default function Home() {
           >
             Sign in
           </Link>
-          <form action={loginAsTesterAction}>
-            <button
-              type="submit"
-              className="inline-flex h-11 items-center px-6 rounded-md border border-brand/40 text-brand font-medium text-sm hover:bg-brand/10 transition-colors cursor-pointer"
-            >
-              Tester
-            </button>
-          </form>
         </div>
 
         <p className="text-xs text-foreground-subtle mt-4">
           5 documents/month free · No credit card required
-        </p>
-        <p className="text-xs text-foreground-subtle">
-          QA reviewer? Click <span className="text-brand">Tester</span> to enter the demo — no login needed.
         </p>
       </div>
     </main>
