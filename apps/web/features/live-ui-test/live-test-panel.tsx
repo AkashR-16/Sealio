@@ -85,7 +85,7 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex items-start justify-between border-b border-border px-6 py-4">
+      <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-4 md:px-6">
         <div>
           <h1 className="text-lg font-bold tracking-tight">Live UI Test — {config.title}</h1>
           <p className="text-sm text-foreground-muted mt-0.5">
@@ -101,9 +101,9 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
         </Button>
       </header>
 
-      <div className="flex flex-1 min-h-0">
-        {/* Left panel — step list */}
-        <aside className="w-80 shrink-0 border-r border-border bg-surface flex flex-col">
+      <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+        {/* Left panel — step list. Stacks on top on mobile, fixed sidebar on md+ */}
+        <aside className="flex flex-1 min-h-0 w-full flex-col border-b border-border bg-surface md:w-80 md:flex-none md:border-b-0 md:border-r">
           <div className="px-4 py-3 border-b border-border bg-background/40">
             <span className={cn("flex items-center gap-2 text-xs font-semibold tracking-wide", config.accent)}>
               <span className="inline-block h-2 w-2 rounded-full bg-current" />
@@ -168,7 +168,7 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
         </aside>
 
         {/* Right panel — run state */}
-        <main className="flex-1 flex items-center justify-center p-8">
+        <main className="flex-1 flex items-center justify-center p-6 md:p-8">
           {!running && !finished && (
             <div className="text-center max-w-md">
               <div className={cn("mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border-2 border-current", config.accent)}>
