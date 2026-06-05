@@ -4,43 +4,73 @@ import { useState } from "react"
 import { loginAsTesterAction } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
 
-// Low-key QA entry: off by default, tucked in the top-right corner. Flipping "Debug" reveals an
-// "Enter QA demo →" link that runs the existing tester login — so the demo isn't advertised to
-// every visitor on the marketing hero.
+// Low-key QA entry: a small "Debug" switch in the top-right corner, off by default. Flipping it on
+// opens a confirmation popup that runs the existing tester login — so the demo isn't advertised on
+// the marketing hero. `open` drives both the switch state and the popup visibility.
 export function DebugToggle() {
-  const [debug, setDebug] = useState(false)
+  const [open, setOpen] = useState(false)
 
   return (
-    <div className="absolute right-4 top-4 z-10 flex items-center gap-3 text-xs text-foreground-subtle md:right-6 md:top-6">
-      {debug && (
-        <form action={loginAsTesterAction}>
-          <button type="submit" className="text-brand hover:underline">
-            Enter QA demo →
-          </button>
-        </form>
-      )}
-
-      <label className="flex cursor-pointer select-none items-center gap-2">
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={open}
+        aria-label="Toggle QA debug access"
+        onClick={() => setOpen((o) => !o)}
+        className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-full p-1 text-xs font-medium text-foreground-muted transition-colors hover:text-foreground md:right-6 md:top-6"
+      >
         <span>Debug</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={debug}
-          aria-label="Toggle debug mode"
-          onClick={() => setDebug((v) => !v)}
+        <span
           className={cn(
-            "relative h-5 w-9 shrink-0 rounded-full transition-colors",
-            debug ? "bg-brand" : "bg-border",
+            "relative h-5 w-9 rounded-full transition-colors",
+            open ? "bg-brand" : "bg-foreground-subtle",
           )}
         >
           <span
             className={cn(
-              "absolute top-0.5 h-4 w-4 rounded-full bg-background transition-transform",
-              debug ? "translate-x-4" : "translate-x-0.5",
+              "absolute left-0.5 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-foreground shadow-sm transition-transform",
+              open ? "translate-x-4" : "translate-x-0",
             )}
           />
-        </button>
-      </label>
-    </div>
+        </span>
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          onClick={() => setOpen(false)}
+        >
+          <div className="absolute inset-0 bg-black/60" />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full rounded-t-2xl border border-border bg-surface p-6 shadow-2xl sm:max-w-sm sm:rounded-2xl"
+          >
+            <h2 className="text-lg font-semibold">Enter QA demo</h2>
+            <p className="mt-1 text-sm text-foreground-muted">
+              Sign in as a test user to explore the app and run the live UI test suites — no account
+              needed.
+            </p>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
+              >
+                Cancel
+              </button>
+              <form action={loginAsTesterAction} className="contents">
+                <button
+                  type="submit"
+                  className="inline-flex h-10 w-full items-center justify-center rounded-md bg-brand px-4 text-sm font-semibold text-background transition-colors hover:bg-brand-dim sm:w-auto"
+                >
+                  Enter QA demo →
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
