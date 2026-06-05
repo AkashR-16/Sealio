@@ -20,19 +20,19 @@ export function DebugToggle() {
         aria-checked={open}
         aria-label="Toggle QA debug access"
         onClick={() => setOpen((o) => !o)}
-        className="absolute right-4 top-4 z-10 flex cursor-pointer items-center gap-2 rounded-full p-1 text-xs font-medium text-foreground-muted transition-colors hover:text-foreground md:right-6 md:top-6"
+        className="absolute right-4 top-4 z-10 flex cursor-pointer items-center gap-2.5 rounded-full p-1 font-mono text-sm uppercase tracking-wider text-foreground-muted transition-colors hover:text-foreground md:right-6 md:top-6"
       >
         <span>Debug</span>
         <span
           className={cn(
-            "relative h-5 w-9 rounded-full transition-colors",
+            "relative h-6 w-11 rounded-full transition-colors",
             open ? "bg-brand" : "bg-foreground-subtle",
           )}
         >
           <span
             className={cn(
-              "absolute left-0.5 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-foreground shadow-sm transition-transform",
-              open ? "translate-x-4" : "translate-x-0",
+              "absolute left-0.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-foreground shadow-sm transition-transform",
+              open ? "translate-x-5" : "translate-x-0",
             )}
           />
         </span>
