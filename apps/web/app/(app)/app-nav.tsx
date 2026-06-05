@@ -43,7 +43,7 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Open navigation menu"
-                  className="-ml-1 flex h-9 w-9 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
+                  className="-ml-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-surface hover:text-foreground"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
@@ -112,7 +112,7 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
                 <DropdownMenuTrigger asChild>
                   <button
                     className={cn(
-                      "flex items-center gap-1 px-3 py-1.5 rounded-md text-sm transition-colors",
+                      "flex cursor-pointer items-center gap-1 px-3 py-1.5 rounded-md text-sm transition-colors",
                       pathname.startsWith("/live-ui-test")
                         ? "bg-surface text-foreground"
                         : "text-foreground-muted hover:text-foreground hover:bg-surface",
@@ -145,7 +145,7 @@ export function AppNav({ user, org }: { user: AuthUser; org: AuthOrg }) {
           <form action={logoutAction}>
             <button
               type="submit"
-              className="text-xs text-foreground-subtle hover:text-foreground transition-colors"
+              className="cursor-pointer text-xs text-foreground-subtle hover:text-foreground transition-colors"
             >
               Sign out
             </button>

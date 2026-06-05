@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useFormStatus } from "react-dom"
+import { Loader2 } from "lucide-react"
 import { loginAsTesterAction } from "@/lib/auth-actions"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +20,7 @@ export function DebugToggle() {
         aria-checked={open}
         aria-label="Toggle QA debug access"
         onClick={() => setOpen((o) => !o)}
-        className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-full p-1 text-xs font-medium text-foreground-muted transition-colors hover:text-foreground md:right-6 md:top-6"
+        className="absolute right-4 top-4 z-10 flex cursor-pointer items-center gap-2 rounded-full p-1 text-xs font-medium text-foreground-muted transition-colors hover:text-foreground md:right-6 md:top-6"
       >
         <span>Debug</span>
         <span
@@ -55,22 +57,39 @@ export function DebugToggle() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
+                className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
               >
                 Cancel
               </button>
               <form action={loginAsTesterAction} className="contents">
-                <button
-                  type="submit"
-                  className="inline-flex h-10 w-full items-center justify-center rounded-md bg-brand px-4 text-sm font-semibold text-background transition-colors hover:bg-brand-dim sm:w-auto"
-                >
-                  Enter QA demo →
-                </button>
+                <QaSubmitButton />
               </form>
             </div>
           </div>
         </div>
       )}
     </>
+  )
+}
+
+// Submit button with a pending state — the server action calls the API to log in, which can take a
+// few seconds (longer if the free-tier API is cold-starting), so show feedback instead of freezing.
+function QaSubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-background transition-colors hover:bg-brand-dim disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+    >
+      {pending ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Entering…
+        </>
+      ) : (
+        "Enter QA demo →"
+      )}
+    </button>
   )
 }

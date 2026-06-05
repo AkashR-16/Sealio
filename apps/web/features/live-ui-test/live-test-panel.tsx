@@ -155,10 +155,10 @@ export function LiveTestPanel({ phase, userEmail }: { phase: PhaseKey; userEmail
             </div>
             {finished && (
               <div className="flex gap-2">
-                <button onClick={copySummary} className="flex-1 text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
+                <button onClick={copySummary} className="flex-1 cursor-pointer text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
                   Copy summary
                 </button>
-                <button onClick={downloadLog} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
+                <button onClick={downloadLog} className="flex-1 flex cursor-pointer items-center justify-center gap-1.5 text-xs text-foreground-subtle hover:text-foreground border border-border rounded-md py-1.5 transition-colors">
                   <Download className="h-3.5 w-3.5" />
                   Download log
                 </button>
